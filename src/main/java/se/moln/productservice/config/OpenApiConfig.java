@@ -32,8 +32,12 @@ public class OpenApiConfig {
                         .description("Product endpoints")
                 )
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Local"),
-                        new Server().url("https://productservice.drillbi.se").description("Production")
+                        new Server()
+                                .url("https://product-service-ismete-c7brajeca5ajbqgk.northeurope-01.azurewebsites.net")
+                                .description("Production server (Azure)"),
+                        new Server()
+                                .url("http://localhost:8082")
+                                .description("Local development server")
                 ));
     }
 }
