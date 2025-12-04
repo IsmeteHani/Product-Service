@@ -30,6 +30,9 @@ class OpenApiConfigTest {
         assertThat(info.getVersion()).isEqualTo("v1");
 
         assertThat(api.getServers()).extracting(Server::getUrl)
-                .contains("http://localhost:8080", "https://productservice.drillbi.se");
+                .contains(
+                        "https://product-service-ismete-c7brajeca5ajbqgk.northeurope-01.azurewebsites.net",
+                        "http://localhost:8082"
+                );
     }
 }
