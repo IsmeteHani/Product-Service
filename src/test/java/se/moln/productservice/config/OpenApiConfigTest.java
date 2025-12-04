@@ -32,7 +32,7 @@ class OpenApiConfigTest {
         assertThat(api.getServers()).extracting(Server::getUrl)
                 .contains(
                         "https://product-service-ismete-c7brajeca5ajbqgk.northeurope-01.azurewebsites.net",
-                        "http://localhost:8082"
+                        "http://localhost:8081"
                 );
     }
 }

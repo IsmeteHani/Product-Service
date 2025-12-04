@@ -36,7 +36,7 @@ public class OpenApiConfig {
                                 .url("https://product-service-ismete-c7brajeca5ajbqgk.northeurope-01.azurewebsites.net")
                                 .description("Production server (Azure)"),
                         new Server()
-                                .url("http://localhost:8082")
+                                .url("http://localhost:8081")
                                 .description("Local development server")
                 ));
     }
