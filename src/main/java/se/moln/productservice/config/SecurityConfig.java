@@ -18,23 +18,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .exceptionHandling(ex -> ex
-                // Return 401 without WWW-Authenticate header to prevent browser login popup
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            )
-            .authorizeHttpRequests(auth -> auth
-                // Swagger & API docs
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/actuator/info").hasRole("ADMIN")
-                // Public API endpoints (adjust as needed)
-                .requestMatchers("/api/products/**", "/api/inventory/**", "/uploads/**").permitAll()
-                // Admin endpoints must be ADMIN
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // everything else authenticated by default
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults());
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(ex -> ex
+                        // Return 401 without WWW-Authenticate header to prevent browser login popup
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+                .authorizeHttpRequests(auth -> auth
+                        // Health check - MUST BE FIRST!
+                        .requestMatchers("/actuator/health").permitAll()
+                        // Swagger & API docs
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/actuator/info").hasRole("ADMIN")
+                        // Public API endpoints (adjust as needed)
+                        .requestMatchers("/api/products/**", "/api/inventory/**", "/uploads/**").permitAll()
+                        // Admin endpoints must be ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // everything else authenticated by default
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults());
         return http.build();
     }
 }
