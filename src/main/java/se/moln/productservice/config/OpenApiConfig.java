@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,17 +16,19 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI productServiceOpenAPI() {
-        final String BASIC_SCHEME = "basicAuth";
+        final String BEARER_SCHEME = "bearerAuth";
 
         return new OpenAPI()
                 .components(new Components()
-                        .addSecuritySchemes(BASIC_SCHEME,
+                        .addSecuritySchemes(BEARER_SCHEME,
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
-                                        .scheme("basic")
-                                        .description("Login with username/password to call admin endpoints")
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                                        .description("JWT Bearer token from UserService")
                         )
                 )
+                .addSecurityItem(new SecurityRequirement().addList(BEARER_SCHEME))
                 .info(new Info()
                         .title("Product Service API")
                         .version("v1")
