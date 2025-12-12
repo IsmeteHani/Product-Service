@@ -37,24 +37,30 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Actuator health/info të hapura (për Azure ping + kontroll)
+                        // Actuator health/info public
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                        // Swagger dhe OpenAPI D U H E T TË JENË PUBLIC
+                        // Swagger + OpenAPI public
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // Admin vetëm me rol ADMIN (nëse do më vonë)
+                        // H2 console public (vetëm për dev)
+                        .requestMatchers("/h2-console/**").permitAll()
+
+                        // ADMIN endpoints, nëse i përdor
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // Gjithçka tjetër kërkon JWT nga UserService
+                        // Gjithçka tjetër → kërkon JWT
                         .anyRequest().authenticated()
                 )
-                // JWT filter përpara UsernamePasswordAuthenticationFilter
+                // JWT filter PARA UsernamePasswordAuthenticationFilter
                 .addFilterBefore((Filter) jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // Lejo H2 console frame
+        http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }

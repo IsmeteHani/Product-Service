@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
+        // Nëse s’ka Authorization ose nuk fillon me "Bearer " → kalon pa auth
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -51,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(
                             username,
                             null,
-                            Collections.emptyList()
+                            Collections.emptyList() // nuk përdor role këtu
                     );
             authToken.setDetails(
                     new WebAuthenticationDetailsSource().buildDetails(request)

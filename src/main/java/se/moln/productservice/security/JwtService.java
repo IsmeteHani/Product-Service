@@ -1,46 +1,78 @@
 package se.moln.productservice.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.JwtException;
-import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import java.time.Instant;
+import java.util.Base64;
 
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String secretKey;   // e njëjta property si në user-service
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * Lexon "sub" nga JWT (emaili i user-it).
+     */
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();  // "sub" nga token
+        try {
+            JsonNode payload = parsePayload(token);
+            if (payload != null && payload.has("sub")) {
+                return payload.get("sub").asText();
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
+    /**
+     * Kontrollon nëse token ka strukturë të mirë dhe nuk ka skaduar.
+     */
     public boolean isTokenValid(String token) {
         try {
-            extractAllClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
+            if (token == null || token.isBlank()) {
+                return false;
+            }
+
+            JsonNode payload = parsePayload(token);
+            if (payload == null) {
+                return false;
+            }
+
+            // Kontrollo exp nëse ekziston (epoch seconds)
+            if (payload.has("exp")) {
+                long exp = payload.get("exp").asLong();
+                long now = Instant.now().getEpochSecond();
+                if (exp < now) {
+                    return false; // token i skaduar
+                }
+            }
+
+            // SIGURUHEMI që ka "sub"
+            return payload.has("sub") && !payload.get("sub").asText().isBlank();
+        } catch (Exception e) {
             return false;
         }
     }
 
-    private Claims extractAllClaims(String token) {
-        Jws<Claims> jws = Jwts
-                .parserBuilder()
-                .setSigningKey(getSignInKey())
-                .build()
-                .parseClaimsJws(token);
-        return jws.getBody();
-    }
 
-    private Key getSignInKey() {
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private JsonNode parsePayload(String token) {
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) {
+            return null;
+        }
+
+        String payloadJson = new String(
+                Base64.getUrlDecoder().decode(parts[1]),
+                StandardCharsets.UTF_8
+        );
+
+        try {
+            return objectMapper.readTree(payloadJson);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
